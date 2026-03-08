@@ -31,9 +31,14 @@ function ExtraInfo({ raw }) {
   );
 }
 
+function formatRating(r) {
+  if (r == null) return null;
+  return Number.isInteger(r) ? r.toFixed(1) : String(r);
+}
+
 function StarRating({ rating }) {
   if (rating == null) return null;
-  return <span className="pub-rating" title={`${rating} on Google Maps`}>{'★'} {rating}</span>;
+  return <span className="pub-rating" title={`${rating} on Google Maps`}>{'★'} {formatRating(rating)}</span>;
 }
 
 function HoursLine({ hoursData, hasHours, area, rating }) {
