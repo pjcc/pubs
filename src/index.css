@@ -1129,7 +1129,7 @@ a:hover { text-decoration: underline; }
 .pub-table tbody tr:hover { background: var(--accent-teal-bg); }
 .pub-table .row-changed { background: rgba(78, 205, 196, 0.05); }
 
-.name-cell { font-weight: 500; white-space: nowrap; }
+.name-cell { font-weight: 500; }
 .name-cell a { color: var(--text-light); }
 .name-cell a:hover { color: var(--accent-teal); }
 .actions-cell { white-space: nowrap; }
@@ -1333,9 +1333,12 @@ a:hover { text-decoration: underline; }
   .add-label-full { display: none; }
   .add-label-short { display: inline; }
 
-  .pub-table .pub-tags { gap: 3px; }
-  .pub-table .pub-tag { padding: 3px 5px; }
+  .pub-table th,
+  .pub-table td { padding: 6px 4px; font-size: 12px; }
+  .pub-table .pub-tags { flex-wrap: nowrap; gap: 2px; }
+  .pub-table .pub-tag { padding: 2px 4px; font-size: 10px; }
   .pub-table .tag-icon + .tag-text { display: none; }
+  .name-cell { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
 @media (max-width: 380px) {
