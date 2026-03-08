@@ -1332,6 +1332,10 @@ a:hover { text-decoration: underline; }
   }
   .add-label-full { display: none; }
   .add-label-short { display: inline; }
+
+  .pub-table .pub-tags { gap: 3px; }
+  .pub-table .pub-tag { padding: 3px 5px; }
+  .pub-table .tag-icon + .tag-text { display: none; }
 }
 
 @media (max-width: 380px) {

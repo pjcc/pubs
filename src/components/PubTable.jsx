@@ -42,7 +42,10 @@ export default function PubTable({ pubs, changedPubs, categories, favourites, on
                     {pub.tags.map((tag) => {
                       const color = catMap[tag] || '#4ecdc4';
                       return (
-                        <span key={tag} className="pub-tag" style={{ background: color + '25', color }}>{showIcons ? `${getTagIcon(tag) || ''} ` : ''}{tag}</span>
+                        <span key={tag} className="pub-tag" style={{ background: color + '25', color }} title={tag}>
+                          {getTagIcon(tag) ? <span className="tag-icon">{getTagIcon(tag)}</span> : null}
+                          <span className="tag-text">{tag}</span>
+                        </span>
                       );
                     })}
                   </div>
