@@ -655,10 +655,10 @@ a:hover { text-decoration: underline; }
   padding: 12px 16px;
   font-size: 12px;
   line-height: 1.6;
-  white-space: nowrap;
   box-shadow: var(--shadow);
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
+  min-width: 260px;
 }
 
 @media (hover: hover) {
@@ -683,9 +683,11 @@ a:hover { text-decoration: underline; }
 }
 
 .extra-info-row a {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+.extra-info-row span:last-child {
+  word-break: break-word;
 }
 
 .hours-today-line {
