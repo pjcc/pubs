@@ -659,7 +659,8 @@ a:hover { text-decoration: underline; }
 }
 
 .extra-info-trigger:hover .extra-info-tooltip,
-.extra-info-trigger:focus .extra-info-tooltip {
+.extra-info-trigger:focus .extra-info-tooltip,
+.extra-info-trigger.open .extra-info-tooltip {
   display: block;
 }
 
@@ -691,7 +692,8 @@ a:hover { text-decoration: underline; }
 }
 
 .hours-today:hover .hours-tooltip,
-.hours-today:focus .hours-tooltip {
+.hours-today:focus .hours-tooltip,
+.hours-today.open .hours-tooltip {
   display: block;
 }
 
