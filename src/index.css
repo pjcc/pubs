@@ -658,11 +658,10 @@ a:hover { text-decoration: underline; }
   overflow-y: auto;
 }
 
-.extra-info-trigger:hover .extra-info-tooltip,
-.extra-info-trigger:focus .extra-info-tooltip,
-.extra-info-trigger.open .extra-info-tooltip {
-  display: block;
+@media (hover: hover) {
+  .extra-info-trigger:hover .extra-info-tooltip { display: block; }
 }
+.extra-info-trigger.open .extra-info-tooltip { display: block; }
 
 .extra-info-row {
   display: flex;
@@ -691,11 +690,10 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
 }
 
-.hours-today:hover .hours-tooltip,
-.hours-today:focus .hours-tooltip,
-.hours-today.open .hours-tooltip {
-  display: block;
+@media (hover: hover) {
+  .hours-today:hover .hours-tooltip { display: block; }
 }
+.hours-today.open .hours-tooltip { display: block; }
 
 .pub-notes {
   font-size: 13px;
