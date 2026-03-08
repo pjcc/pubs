@@ -488,6 +488,15 @@ function scrapeMapLink(payload) {
     latLng = { lat: payload.placeLat, lng: payload.placeLng };
   }
 
+  // Follow redirects for shortened URLs (maps.app.goo.gl, goo.gl, etc.)
+  if (url && /goo\.gl|maps\.app/i.test(url)) {
+    try {
+      var resp = UrlFetchApp.fetch(url, { followRedirects: false, muteHttpExceptions: true });
+      var location = resp.getHeaders()['Location'] || resp.getHeaders()['location'];
+      if (location) url = location;
+    } catch (e) {}
+  }
+
   if (!query && url) {
     // Extract place name from URL path: /maps/place/Place+Name/
     var placeMatch = url.match(/\/maps\/place\/([^/@]+)/);
