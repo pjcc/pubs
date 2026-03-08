@@ -283,15 +283,25 @@ a:hover { text-decoration: underline; }
 /* ---- Search & Filters ---- */
 .header-filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
+}
+
+.search-row {
+  display: flex;
+  gap: 8px;
   align-items: center;
 }
 
-.search-input {
+.search-wrap {
+  position: relative;
   flex: 1;
-  min-width: 180px;
-  padding: 8px 12px;
+  min-width: 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--bg-input);
@@ -301,6 +311,23 @@ a:hover { text-decoration: underline; }
   outline: none;
 }
 .search-input:focus { border-color: var(--accent-teal); }
+
+.search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.search-clear:hover { color: var(--text-light); }
 
 .filter-chips {
   display: flex;
@@ -319,28 +346,23 @@ a:hover { text-decoration: underline; }
   cursor: pointer;
   transition: all 0.15s;
 }
-.chip:hover { border-color: var(--text-muted); color: var(--text-light); }
 .chip.active {
   background: var(--accent-teal-bg);
   border-color: var(--accent-teal);
   color: var(--accent-teal);
 }
-.chip[data-color]:hover {
-  border-color: var(--chip-color);
-  color: var(--chip-color);
+@media (hover: hover) {
+  .chip:hover { border-color: var(--text-muted); color: var(--text-light); }
+  .chip[data-color]:hover {
+    border-color: var(--chip-color);
+    color: var(--chip-color);
+  }
 }
 
 .chip-sort.active {
   background: var(--accent-teal-bg);
   border-color: var(--accent-teal);
   color: var(--accent-teal);
-}
-
-.chip-divider {
-  width: 1px;
-  align-self: stretch;
-  background: var(--border);
-  margin: 2px 2px;
 }
 
 /* ---- Login ---- */
