@@ -14,8 +14,8 @@ export default function Modal({ title, onClose, children }) {
   }, [onClose]);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onMouseDown={onClose} onTouchEnd={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{title}</h2>
           <button className="btn-icon" onClick={onClose}>
