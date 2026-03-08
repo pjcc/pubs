@@ -431,7 +431,9 @@ a:hover { text-decoration: underline; }
   transition: border-color 0.15s;
   height: 100%;
 }
-.pub-card:hover { border-color: var(--accent-teal); }
+@media (hover: hover) {
+  .pub-card:hover { border-color: var(--accent-teal); }
+}
 
 .pub-card-footer {
   margin-top: auto;
