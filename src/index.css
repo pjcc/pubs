@@ -536,6 +536,7 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
   color: #f5a623;
   font-weight: 600;
+  margin-left: auto;
 }
 
 .pub-maps-link {

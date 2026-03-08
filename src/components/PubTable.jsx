@@ -36,7 +36,7 @@ export default function PubTable({ pubs, changedPubs, categories, favourites, on
                   {changed === 'Edited' && <span className="pub-change-badge">UPDATED</span>}
                 </td>
                 <td>{pub.area}</td>
-                <td>{pub.mapsRating ?? '-'}</td>
+                <td>{pub.mapsRating != null ? (Number.isInteger(pub.mapsRating) ? pub.mapsRating.toFixed(1) : pub.mapsRating) : '-'}</td>
                 <td>
                   <div className="pub-tags">
                     {pub.tags.map((tag) => {
