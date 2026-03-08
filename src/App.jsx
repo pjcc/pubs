@@ -36,7 +36,6 @@ export default function App() {
     localStorage.getItem('brighton-pubs-view') || 'cards'
   );
   const [toast, setToast] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [filters, setFilters] = useState({});
@@ -341,8 +340,6 @@ export default function App() {
       <Header
         onAdd={() => { setEditingPub(null); setShowForm(true); }}
         onSignOut={handleSignOut}
-        onRefresh={async () => { setRefreshing(true); await loadData(true); setRefreshing(false); }}
-        refreshing={refreshing}
         view={view}
         onViewChange={handleViewChange}
         theme={theme}

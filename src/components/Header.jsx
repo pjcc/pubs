@@ -9,7 +9,7 @@ const THEMES = [
 ];
 
 export default function Header({
-  onAdd, onSignOut, onRefresh, refreshing,
+  onAdd, onSignOut,
   view, onViewChange, theme, onThemeChange,
   userName, unseenCount, pubs,
   search, onSearchChange, filters, onFiltersChange,
@@ -74,17 +74,7 @@ export default function Header({
               <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
           </button>
-          <button
-            className={`btn btn-ghost ${refreshing ? 'spin' : ''}`}
-            onClick={onRefresh}
-            title="Refresh"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-            </svg>
-          </button>
-          <button className="btn btn-primary" onClick={onAdd}>+ Add Pub</button>
+          <button className="btn btn-primary" onClick={onAdd}><span className="add-label-full">+ Add Pub</span><span className="add-label-short">+</span></button>
         </div>
       </div>
 
