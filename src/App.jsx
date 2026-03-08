@@ -367,7 +367,7 @@ export default function App() {
       ) : view === 'history' ? (
         <HistoryView history={history} />
       ) : view === 'map' ? (
-        <MapView pubs={pubs} theme={theme} showIcons={showIcons} />
+        <MapView pubs={filteredPubs} theme={theme} showIcons={showIcons} />
       ) : (
         <PubList
           pubs={filteredPubs}

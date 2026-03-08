@@ -168,12 +168,24 @@ export default function MapView({ pubs, theme, showIcons }) {
       const icon = buildMarkerIcon(color);
       const marker = L.marker(coords, { icon }).addTo(layerRef.current);
 
-      marker.bindTooltip(buildTooltipHtml(pub, showIcons), {
+      const tooltip = marker.bindTooltip(buildTooltipHtml(pub, showIcons), {
         permanent: true,
+        interactive: true,
         direction: 'top',
         offset: [0, -4],
         className: 'pub-marker-label',
-      });
+      }).getTooltip();
+
+      if (tooltip) {
+        const el = tooltip.getElement?.bind(tooltip);
+        marker.on('tooltipopen', () => {
+          const tooltipEl = el ? el() : tooltip._container;
+          if (tooltipEl) {
+            tooltipEl.style.cursor = 'pointer';
+            tooltipEl.onclick = () => marker.openPopup();
+          }
+        });
+      }
 
       const rating = pub.mapsRating ? ` <span style="color:#e8a317">★ ${esc(String(pub.mapsRating))}</span>` : '';
       const area = pub.area ? `<br><small style="opacity:0.7">${esc(pub.area)}</small>` : '';
