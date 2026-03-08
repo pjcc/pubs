@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function Modal({ title, onClose, children }) {
+  const overlayRef = useRef(null);
+
   useEffect(() => {
     function handleKey(e) {
       if (e.key === 'Escape') onClose();
@@ -13,9 +15,13 @@ export default function Modal({ title, onClose, children }) {
     };
   }, [onClose]);
 
+  function handleOverlayClick(e) {
+    if (e.target === overlayRef.current) onClose();
+  }
+
   return (
-    <div className="modal-overlay" onMouseDown={onClose} onTouchEnd={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" ref={overlayRef} onClick={handleOverlayClick}>
+      <div className="modal">
         <div className="modal-header">
           <h2>{title}</h2>
           <button className="btn-icon" onClick={onClose}>
