@@ -900,8 +900,30 @@ a:hover { text-decoration: underline; }
   display: flex;
   gap: 8px;
 }
-.maps-link-row input { flex: 1; }
+.maps-link-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.maps-link-wrap input { width: 100%; padding-right: 32px; }
 .maps-link-row .btn { flex-shrink: 0; }
+
+.paste-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.paste-btn:hover { color: var(--text-light); }
 
 .fetch-error {
   font-size: 12px;
