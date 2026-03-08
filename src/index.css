@@ -703,10 +703,19 @@ a:hover { text-decoration: underline; }
   padding-left: 10px;
 }
 
+.pub-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .pub-added-by {
   font-size: 11px;
   color: var(--text-muted);
   opacity: 0.7;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 /* ---- Map ---- */
