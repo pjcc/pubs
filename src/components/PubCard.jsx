@@ -1,4 +1,5 @@
 function ExtraInfo({ raw }) {
+  const [open, setOpen] = useState(false);
   if (!raw) return null;
   let info;
   try { info = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { return null; }
@@ -6,7 +7,7 @@ function ExtraInfo({ raw }) {
   if (!entries.length) return null;
   return (
     <div className="extra-info-wrap">
-      <span className="extra-info-trigger" tabIndex={0}>
+      <span className={`extra-info-trigger ${open ? 'open' : ''}`} tabIndex={0} onClick={() => setOpen((v) => !v)}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
         </svg>
@@ -35,6 +36,40 @@ function StarRating({ rating }) {
   return <span className="pub-rating" title={`${rating} on Google Maps`}>{'★'} {rating}</span>;
 }
 
+function HoursLine({ hoursData, hasHours, area, rating }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="pub-card-meta">
+      {area && (
+        <span className="pub-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          {area}
+        </span>
+      )}
+      <StarRating rating={rating} />
+      {hasHours && (
+        <span className="pub-meta-item pub-hours-inline">
+          {hoursData.lines ? (
+            <span className={`hours-today ${open ? 'open' : ''}`} tabIndex={0} onClick={() => setOpen((v) => !v)}>
+              {hoursData.summary} <span className="hours-hint">(today)</span>
+              <div className="hours-tooltip">
+                {hoursData.lines.map((line, i) => (
+                  <div key={i} className={line.startsWith(hoursData.today) ? 'hours-today-line' : ''}>{line}</div>
+                ))}
+              </div>
+            </span>
+          ) : (
+            <span>{hoursData.summary}</span>
+          )}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function parseHours(raw) {
   const str = Array.isArray(raw) ? raw.join(', ') : String(raw || '');
   if (!str.trim()) return null;
@@ -51,6 +86,7 @@ function parseHours(raw) {
   return { summary, lines, today };
 }
 
+import { useState } from 'react';
 import { getTagIcon } from '../tagIcons.js';
 
 export default function PubCard({ pub, onEdit, onDelete, changeType, categories, isFavourite, onToggleFavourite, showIcons }) {
@@ -102,18 +138,7 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
         </div>
       </div>
 
-      <div className="pub-card-meta">
-        {pub.area && (
-          <span className="pub-meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            {pub.area}
-          </span>
-        )}
-        <StarRating rating={pub.mapsRating} />
-      </div>
+      <HoursLine hoursData={hoursData} hasHours={hasHours} area={pub.area} rating={pub.mapsRating} />
 
       {pub.tags.length > 0 && (
         <div className="pub-tags">
@@ -132,23 +157,6 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
 
       <div className="pub-card-footer">
         {hasFood && <div className="pub-food"><strong>Food:</strong> {pub.food}</div>}
-        {hasHours && (
-          <div className="pub-hours-wrap">
-            <strong>Hours:</strong>{' '}
-            {hoursData.lines ? (
-              <span className="hours-today" tabIndex={0}>
-                {hoursData.summary} <span className="hours-hint">(today)</span>
-                <div className="hours-tooltip">
-                  {hoursData.lines.map((line, i) => (
-                    <div key={i} className={line.startsWith(hoursData.today) ? 'hours-today-line' : ''}>{line}</div>
-                  ))}
-                </div>
-              </span>
-            ) : (
-              <span>{hoursData.summary}</span>
-            )}
-          </div>
-        )}
         {hasNotes && <div className="pub-notes">{pub.notes}</div>}
 
         <div className="pub-card-bottom">
