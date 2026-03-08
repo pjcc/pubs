@@ -54,7 +54,6 @@ function HoursLine({ hoursData, hasHours, area, rating }) {
           {area}
         </span>
       )}
-      <StarRating rating={rating} />
       {hasHours && (
         <span className="pub-meta-item pub-hours-inline">
           {hoursData.lines ? (
@@ -71,6 +70,7 @@ function HoursLine({ hoursData, hasHours, area, rating }) {
           )}
         </span>
       )}
+      <StarRating rating={rating} />
     </div>
   );
 }
