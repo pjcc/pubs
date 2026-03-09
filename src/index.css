@@ -640,6 +640,8 @@ a:hover { text-decoration: underline; }
   right: 0;
   margin-bottom: 8px;
   z-index: 50;
+  width: max-content;
+  max-width: min(500px, 90vw);
 }
 .extra-info-tooltip::after {
   content: '';
@@ -657,7 +659,7 @@ a:hover { text-decoration: underline; }
   font-size: 12px;
   line-height: 1.6;
   box-shadow: var(--shadow);
-  max-height: 400px;
+  max-height: 70vh;
   overflow-y: auto;
 }
 
