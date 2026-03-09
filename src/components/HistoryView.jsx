@@ -21,8 +21,9 @@ function ActionBadge({ action }) {
   );
 }
 
-export default function HistoryView({ history }) {
+export default function HistoryView({ history, loading }) {
   if (!history.length) {
+    if (loading) return null;
     return (
       <div className="empty-state">
         <div className="empty-icon">📋</div>

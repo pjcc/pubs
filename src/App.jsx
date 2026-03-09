@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getSavedSession, saveSession, clearSession,
-  checkPassword, fetchAll, fetchPubsAndCategories, fetchHistory, getCachedData,
+  checkPassword, fetchAll, fetchPubsAndCategories, fetchHistory, getCachedData, getCachedHistory,
   addPub, updatePub, removePub,
   addCategory as apiAddCategory,
   updateCategory as apiUpdateCategory,
@@ -26,9 +26,10 @@ export default function App() {
   const [initialising, setInitialising] = useState(true);
   const [loginError, setLoginError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [pubs, setPubs] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [history, setHistory] = useState([]);
+  const [cachedInit] = useState(() => getCachedData());
+  const [pubs, setPubs] = useState(() => cachedInit?.pubs || []);
+  const [categories, setCategories] = useState(() => cachedInit?.categories || []);
+  const [history, setHistory] = useState(() => getCachedHistory() || []);
   const [showForm, setShowForm] = useState(false);
   const [editingPub, setEditingPub] = useState(null);
   const [deletingPub, setDeletingPub] = useState(null);
@@ -104,7 +105,7 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(() => !!(getCachedHistory()?.length));
 
   useEffect(() => {
     const saved = getSavedSession();
@@ -115,12 +116,6 @@ export default function App() {
         const raw = localStorage.getItem(`brighton-pubs-favs-${saved.name.toLowerCase()}`);
         if (raw) setFavourites(new Set(JSON.parse(raw)));
       } catch {}
-      // Show cached data instantly while fresh data loads
-      const cached = getCachedData();
-      if (cached) {
-        setPubs(cached.pubs);
-        setCategories(cached.categories || []);
-      }
     }
     setInitialising(false);
   }, []);
@@ -135,11 +130,15 @@ export default function App() {
   async function loadData(silent = false) {
     if (!session) return;
     // Only show spinner if no cached data was loaded
-    if (!silent && !getCachedData()) setLoading(true);
+    if (!silent && !cachedInit) setLoading(true);
     try {
       const data = await fetchPubsAndCategories(session.password);
       setPubs(data.pubs);
       setCategories(data.categories || []);
+      if (data.history) {
+        setHistory(data.history);
+        setHistoryLoaded(true);
+      }
     } catch (err) {
       if (err.message?.includes('Invalid password')) {
         clearSession();
@@ -154,7 +153,7 @@ export default function App() {
   }
 
   async function loadHistory() {
-    if (historyLoaded || !session) return;
+    if (!session) return;
     try {
       const data = await fetchHistory(session.password);
       setHistory(data.history);
@@ -395,11 +394,7 @@ export default function App() {
       {loading ? (
         <div className="loading"><div className="spinner" />Loading pubs...</div>
       ) : view === 'history' ? (
-        !historyLoaded ? (
-          <div className="loading"><div className="spinner" />Loading history...</div>
-        ) : (
-          <HistoryView history={history} />
-        )
+        <HistoryView history={history} loading={!historyLoaded} />
       ) : view === 'map' ? (
         <MapView pubs={filteredPubs} theme={theme} showIcons={showIcons} />
       ) : (
