@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getSavedSession, saveSession, clearSession,
-  checkPassword, fetchAll,
+  checkPassword, fetchAll, fetchPubsAndCategories, fetchHistory, getCachedData,
   addPub, updatePub, removePub,
   addCategory as apiAddCategory,
   updateCategory as apiUpdateCategory,
@@ -82,7 +82,10 @@ export default function App() {
   }
 
   function handleViewChange(newView) {
-    if (newView === 'history') markAsSeen();
+    if (newView === 'history') {
+      markAsSeen();
+      loadHistory();
+    }
     setView(newView);
     localStorage.setItem('brighton-pubs-view', newView);
   }
@@ -101,6 +104,8 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
   useEffect(() => {
     const saved = getSavedSession();
     if (saved) {
@@ -110,22 +115,31 @@ export default function App() {
         const raw = localStorage.getItem(`brighton-pubs-favs-${saved.name.toLowerCase()}`);
         if (raw) setFavourites(new Set(JSON.parse(raw)));
       } catch {}
+      // Show cached data instantly while fresh data loads
+      const cached = getCachedData();
+      if (cached) {
+        setPubs(cached.pubs);
+        setCategories(cached.categories || []);
+      }
     }
     setInitialising(false);
   }, []);
 
   useEffect(() => {
-    if (session) loadData();
+    if (session) {
+      loadData();
+      if (view === 'history') loadHistory();
+    }
   }, [session]);
 
   async function loadData(silent = false) {
     if (!session) return;
-    if (!silent) setLoading(true);
+    // Only show spinner if no cached data was loaded
+    if (!silent && !getCachedData()) setLoading(true);
     try {
-      const data = await fetchAll(session.password);
+      const data = await fetchPubsAndCategories(session.password);
       setPubs(data.pubs);
       setCategories(data.categories || []);
-      setHistory(data.history);
     } catch (err) {
       if (err.message?.includes('Invalid password')) {
         clearSession();
@@ -135,8 +149,17 @@ export default function App() {
         showToast('Failed to load data', 'error');
       }
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
+  }
+
+  async function loadHistory() {
+    if (historyLoaded || !session) return;
+    try {
+      const data = await fetchHistory(session.password);
+      setHistory(data.history);
+      setHistoryLoaded(true);
+    } catch {}
   }
 
   async function handleLogin(name, password) {
@@ -161,6 +184,7 @@ export default function App() {
     setPubs([]);
     setCategories([]);
     setHistory([]);
+    setHistoryLoaded(false);
   }
 
   function isDuplicate(pub) {
@@ -189,10 +213,10 @@ export default function App() {
     }
     try {
       await addPub(session.password, session.name, pub);
-      if (!silent) loadData(true);
+      loadData(true);
     } catch {
       showToast('Failed to save - refreshing...', 'error');
-      if (!silent) loadData(true);
+      loadData(true);
     }
   }
 
@@ -371,7 +395,11 @@ export default function App() {
       {loading ? (
         <div className="loading"><div className="spinner" />Loading pubs...</div>
       ) : view === 'history' ? (
-        <HistoryView history={history} />
+        !historyLoaded ? (
+          <div className="loading"><div className="spinner" />Loading history...</div>
+        ) : (
+          <HistoryView history={history} />
+        )
       ) : view === 'map' ? (
         <MapView pubs={filteredPubs} theme={theme} showIcons={showIcons} />
       ) : (
