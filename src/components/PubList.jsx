@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import PubCard from './PubCard.jsx';
 import PubTable from './PubTable.jsx';
 
 export default function PubList({ pubs, view, changedPubs, categories, favourites, onToggleFavourite, showIcons, onEdit, onDelete, onAdd }) {
+  const [openTooltip, setOpenTooltip] = useState(null);
+
   if (!pubs.length) {
     return (
       <div className="empty-state">
@@ -29,6 +32,8 @@ export default function PubList({ pubs, view, changedPubs, categories, favourite
           showIcons={showIcons}
           onEdit={() => onEdit(pub)}
           onDelete={() => onDelete(pub)}
+          openTooltip={openTooltip}
+          onTooltipToggle={setOpenTooltip}
         />
       ))}
     </div>
