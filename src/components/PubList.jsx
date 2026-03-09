@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PubCard from './PubCard.jsx';
 import PubTable from './PubTable.jsx';
 
-export default function PubList({ pubs, view, changedPubs, categories, favourites, onToggleFavourite, showIcons, onEdit, onDelete, onAdd }) {
+export default function PubList({ pubs, view, changedPubs, categories, favourites, onToggleFavourite, showIcons, sortBy, onSortChange, onEdit, onDelete, onAdd }) {
   const [openTooltip, setOpenTooltip] = useState(null);
 
   if (!pubs.length) {
@@ -16,7 +16,7 @@ export default function PubList({ pubs, view, changedPubs, categories, favourite
   }
 
   if (view === 'table') {
-    return <PubTable pubs={pubs} changedPubs={changedPubs} categories={categories} favourites={favourites} onToggleFavourite={onToggleFavourite} showIcons={showIcons} onEdit={onEdit} onDelete={onDelete} />;
+    return <PubTable pubs={pubs} changedPubs={changedPubs} categories={categories} favourites={favourites} onToggleFavourite={onToggleFavourite} showIcons={showIcons} sortBy={sortBy} onSortChange={onSortChange} onEdit={onEdit} onDelete={onDelete} />;
   }
 
   return (

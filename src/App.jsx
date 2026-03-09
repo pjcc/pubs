@@ -376,6 +376,8 @@ export default function App() {
           favourites={favourites}
           onToggleFavourite={toggleFavourite}
           showIcons={showIcons}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
           onEdit={(pub) => { setEditingPub(pub); setShowForm(true); }}
           onDelete={(pub) => setDeletingPub(pub)}
           onAdd={() => { setEditingPub(null); setShowForm(true); }}

@@ -1,15 +1,15 @@
 import { getTagIcon } from '../tagIcons.js';
 
-export default function PubTable({ pubs, changedPubs, categories, favourites, onToggleFavourite, showIcons, onEdit, onDelete }) {
+export default function PubTable({ pubs, changedPubs, categories, favourites, onToggleFavourite, showIcons, sortBy, onSortChange, onEdit, onDelete }) {
   return (
     <div className="table-wrap">
       <table className="pub-table">
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
+            <th className="th-sortable" onClick={() => onSortChange('name')}>Name {sortBy === 'name' ? '▲' : ''}</th>
             <th>Area</th>
-            <th>Rating</th>
+            <th className="th-sortable" onClick={() => onSortChange('rating')}>Rating {sortBy === 'rating' ? '▼' : ''}</th>
             <th>Tags</th>
             <th>Food</th>
             <th></th>
