@@ -106,11 +106,6 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
           {pub.mapsLink ? (
             <a href={pub.mapsLink} target="_blank" rel="noopener noreferrer">
               {pub.name}
-              <svg className="pub-name-map-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
             </a>
           ) : pub.name}
           {badgeLabel && <span className="pub-change-badge">{badgeLabel}</span>}
@@ -155,13 +150,23 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
         <div className="pub-card-bottom">
           <ExtraInfo raw={pub.extraInfo} tooltipId={`info-${pub.rowIndex}`} open={openTooltip === `info-${pub.rowIndex}`} onToggle={onTooltipToggle} />
           {pub.area && (
-            <span className="pub-area-bottom">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              {pub.area}
-            </span>
+            pub.mapsLink ? (
+              <a href={pub.mapsLink} target="_blank" rel="noopener noreferrer" className="pub-area-bottom">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                {pub.area}
+              </a>
+            ) : (
+              <span className="pub-area-bottom">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                {pub.area}
+              </span>
+            )
           )}
           {pub.addedBy && (
             <span className="pub-added-by">Added by {pub.addedBy}{pub.lastUpdated ? ` · ${pub.lastUpdated}` : ''}</span>
