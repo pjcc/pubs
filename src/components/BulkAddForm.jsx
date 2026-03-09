@@ -64,6 +64,7 @@ export default function BulkAddForm({ password, onAdd, onDone, onCancel }) {
         // Overlay full detail if available
         if (detail.ok) {
           if (detail.rating != null) pub.mapsRating = detail.rating;
+          if (detail.area) pub.area = detail.area;
           if (detail.openingHours) pub.openingHours = detail.openingHours;
           if (detail.extraInfo) {
             try {
