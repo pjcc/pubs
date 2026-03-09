@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { searchPlaces, scrapeMapLink } from '../services/api.js';
 
-export default function BulkAddForm({ password, onAdd, onDone, onCancel }) {
+export default function BulkAddForm({ password, onAdd, onDone, onCancel, onProgress }) {
   const [text, setText] = useState('');
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState([]);
@@ -25,10 +25,12 @@ export default function BulkAddForm({ password, onAdd, onDone, onCancel }) {
     setRunning(true);
     cancelRef.current = false;
     setResults(names.map((n) => ({ name: n, status: 'pending' })));
+    if (onProgress) onProgress({ label: 'Adding pubs', current: 0, total: names.length });
 
     for (let i = 0; i < names.length; i++) {
       if (cancelRef.current) break;
       const name = names[i];
+      if (onProgress) onProgress({ label: 'Adding pubs', current: i, total: names.length });
       setResults((r) => r.map((x, j) => j === i ? { ...x, status: 'searching' } : x));
 
       try {
