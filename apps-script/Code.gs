@@ -535,6 +535,7 @@ function scrapeMapLink(payload) {
       'places.accessibilityOptions', 'places.paymentOptions',
       'places.dineIn', 'places.takeout', 'places.delivery',
       'places.reservable', 'places.currentOpeningHours',
+      'places.addressComponents',
     ].join(',');
     var body = {
       textQuery: latLng ? query : query + ' Brighton',
@@ -628,10 +629,34 @@ function scrapeMapLink(payload) {
       lng = place.location.longitude;
     }
 
+    // Extract area from address components
+    var area = '';
+    if (place.addressComponents) {
+      var comps = place.addressComponents;
+      // Prefer neighborhood, then sublocality, then locality
+      for (var ci = 0; ci < comps.length; ci++) {
+        var types = comps[ci].types || [];
+        if (types.indexOf('neighborhood') !== -1) { area = comps[ci].longText || comps[ci].shortText || ''; break; }
+      }
+      if (!area) {
+        for (var ci = 0; ci < comps.length; ci++) {
+          var types = comps[ci].types || [];
+          if (types.indexOf('sublocality') !== -1 || types.indexOf('sublocality_level_1') !== -1) { area = comps[ci].longText || comps[ci].shortText || ''; break; }
+        }
+      }
+      if (!area) {
+        for (var ci = 0; ci < comps.length; ci++) {
+          var types = comps[ci].types || [];
+          if (types.indexOf('postal_town') !== -1) { area = comps[ci].longText || comps[ci].shortText || ''; break; }
+        }
+      }
+    }
+
     return {
       ok: true,
       name: place.displayName ? place.displayName.text : '',
       rating: place.rating || null,
+      area: area,
       openingHours: hours,
       features: features,
       extraInfo: JSON.stringify(extra),

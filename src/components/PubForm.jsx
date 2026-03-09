@@ -74,6 +74,7 @@ export default function PubForm({ pub, onSubmit, onCancel, password, categories,
           setForm((f) => {
             const updated = { ...f, name: s.name, mapsLink: s.mapsUri };
             if (data.rating != null) updated.mapsRating = String(data.rating);
+            if (data.area && !f.area.trim()) updated.area = data.area;
             if (data.openingHours && !f.openingHours.trim()) updated.openingHours = data.openingHours;
             if (data.extraInfo) {
               try {
@@ -142,6 +143,7 @@ export default function PubForm({ pub, onSubmit, onCancel, password, categories,
           const updated = { ...f };
           if (!f.name.trim() && data.name) updated.name = data.name;
           if (data.rating != null) updated.mapsRating = String(data.rating);
+          if (data.area && !f.area.trim()) updated.area = data.area;
           if (data.openingHours && !f.openingHours.trim()) updated.openingHours = data.openingHours;
           if (data.extraInfo) {
             // Inject lat/lng into extraInfo for map view
