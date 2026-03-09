@@ -1,4 +1,5 @@
 import { getTagIcon } from '../tagIcons.js';
+import { CITIES } from '../App.jsx';
 
 const THEMES = [
   { id: 'midnight', label: 'Midnight' },
@@ -16,6 +17,7 @@ export default function Header({
   sortBy, onSortChange,
   categories, onManageCategories,
   showIcons, onToggleIcons,
+  city, onCityChange,
 }) {
   function toggleFilter(name) {
     onFiltersChange({ ...filters, [name]: !filters[name] });
@@ -34,7 +36,14 @@ export default function Header({
       </div>
 
       <div className="header-top">
-        <h1 className="header-title">Pubs</h1>
+        <h1 className="header-title">
+          Pubs
+          <select className="city-select" value={city} onChange={(e) => onCityChange(e.target.value)}>
+            {CITIES.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
+            ))}
+          </select>
+        </h1>
         <div className="header-user">
           <span className="user-name">{userName}</span>
           <button className="btn btn-ghost" onClick={onSignOut}>Sign out</button>

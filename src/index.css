@@ -233,6 +233,21 @@ a:hover { text-decoration: underline; }
   font-size: 22px;
   font-weight: 700;
   color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.city-select {
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--bg-card);
+  color: var(--text-light);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 6px;
+  cursor: pointer;
 }
 
 .header-user {
@@ -779,6 +794,10 @@ a.pub-area-bottom:hover { color: var(--accent-teal); }
   border-radius: 4px !important;
   white-space: nowrap;
 }
+.pub-marker-label.marker-fav {
+  border: 2px solid var(--accent) !important;
+  z-index: 1000 !important;
+}
 .pub-marker-label::before {
   display: none !important;
 }
@@ -1208,6 +1227,12 @@ a.pub-area-bottom:hover { color: var(--accent-teal); }
   border-radius: 4px;
   border: 1px solid;
   margin-right: 8px;
+}
+
+.history-city {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 6px;
 }
 
 .history-ts { font-size: 12px; color: var(--text-muted); white-space: nowrap; }

@@ -21,9 +21,23 @@ function getPlacesApiKey() {
 // Rate limiting: max failed password attempts per minute
 const MAX_FAILED_ATTEMPTS = 5;
 
-const PUBS_SHEET = 'Pubs';
-const CATEGORIES_SHEET = 'Categories';
-const HISTORY_SHEET = 'History';
+var PUBS_SHEET = 'Pubs';
+var CATEGORIES_SHEET = 'Categories';
+var HISTORY_SHEET = 'History';
+
+var CITIES = {
+  brighton: { pubs: 'Pubs', categories: 'Categories', history: 'History', lat: 50.8225, lng: -0.1372, bias: 'Brighton' },
+  london:   { pubs: 'London_Pubs', categories: 'London_Categories', history: 'London_History', lat: 51.5074, lng: -0.1278, bias: 'London' },
+  glasgow:  { pubs: 'Glasgow_Pubs', categories: 'Glasgow_Categories', history: 'Glasgow_History', lat: 55.8642, lng: -4.2518, bias: 'Glasgow' },
+};
+
+function setCity(city) {
+  var c = CITIES[city] || CITIES.brighton;
+  PUBS_SHEET = c.pubs;
+  CATEGORIES_SHEET = c.categories;
+  HISTORY_SHEET = c.history;
+  return c;
+}
 
 const PUB_HEADERS = [
   'Name', 'Area', 'Google Maps Link', 'Google Maps Rating',
@@ -31,7 +45,7 @@ const PUB_HEADERS = [
 ];
 
 const CATEGORY_HEADERS = ['Name', 'Color'];
-const HISTORY_HEADERS = ['Timestamp', 'User', 'Action', 'Pub', 'Summary'];
+const HISTORY_HEADERS = ['Timestamp', 'User', 'Action', 'Pub', 'Summary', 'City'];
 
 var DEFAULT_CATEGORIES = [
   ['Garden', '#4caf50'],
@@ -130,6 +144,9 @@ function handleRequest(payload) {
     recordFailedAttempt();
     return { ok: false, error: 'Invalid password' };
   }
+
+  // Set city-specific sheet names
+  var cityConfig = setCity(payload.city || 'brighton');
 
   switch (action) {
     case 'getAll':
@@ -236,10 +253,11 @@ function getAll() {
     return { rowIndex: i + 2, name: row[0] || '', color: row[1] || '#4ecdc4' };
   });
 
-  // History
-  var historySheet = ss.getSheetByName(HISTORY_SHEET);
+  // History - always from shared History sheet
+  var historySheet = ss.getSheetByName('History');
+  var numCols = Math.max(HISTORY_HEADERS.length, 6);
   var historyData = historySheet.getLastRow() > 1
-    ? historySheet.getRange(2, 1, historySheet.getLastRow() - 1, HISTORY_HEADERS.length).getValues()
+    ? historySheet.getRange(2, 1, historySheet.getLastRow() - 1, numCols).getValues()
     : [];
 
   var history = historyData.map(function(row) {
@@ -249,6 +267,7 @@ function getAll() {
       action: row[2] || '',
       pub: row[3] || '',
       summary: row[4] || '',
+      city: row[5] || '',
     };
   }).reverse();
 
@@ -287,12 +306,14 @@ function getPubsAndCategories() {
 function getHistory() {
   ensureSheets();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var historySheet = ss.getSheetByName(HISTORY_SHEET);
+  // Always read from shared History sheet
+  var historySheet = ss.getSheetByName('History');
+  var numCols = Math.max(HISTORY_HEADERS.length, 6);
   var historyData = historySheet.getLastRow() > 1
-    ? historySheet.getRange(2, 1, historySheet.getLastRow() - 1, HISTORY_HEADERS.length).getValues()
+    ? historySheet.getRange(2, 1, historySheet.getLastRow() - 1, numCols).getValues()
     : [];
   var history = historyData.map(function(row) {
-    return { timestamp: row[0] || '', user: row[1] || '', action: row[2] || '', pub: row[3] || '', summary: row[4] || '' };
+    return { timestamp: row[0] || '', user: row[1] || '', action: row[2] || '', pub: row[3] || '', summary: row[4] || '', city: row[5] || '' };
   }).reverse();
   return { ok: true, history: history };
 }
@@ -564,9 +585,10 @@ function searchPlaces(payload) {
       maxResultCount: 5,
       includedType: 'bar',
     };
-    // Bias toward user's location if provided, otherwise Brighton
-    var lat = payload.lat || 50.8225;
-    var lng = payload.lng || -0.1372;
+    // Bias toward user's location if provided, otherwise city default
+    var cityConf = CITIES[payload.city] || CITIES.brighton;
+    var lat = payload.lat || cityConf.lat;
+    var lng = payload.lng || cityConf.lng;
     body.locationBias = {
       circle: { center: { latitude: lat, longitude: lng }, radius: 20000 }
     };
@@ -665,7 +687,7 @@ function scrapeMapLink(payload) {
       'places.addressComponents', 'places.primaryTypeDisplayName',
     ].join(',');
     var body = {
-      textQuery: latLng ? query : query + ' Brighton',
+      textQuery: latLng ? query : query + ' ' + (CITIES[payload.city] || CITIES.brighton).bias,
       maxResultCount: 1,
     };
     if (latLng) {
@@ -826,8 +848,14 @@ function scrapeMapLink(payload) {
 
 function logHistory(user, action, pub, summary) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(HISTORY_SHEET);
-  sheet.appendRow([new Date().toISOString(), user, action, pub, summary]);
+  // Always use shared History sheet, not city-specific
+  var sheet = ss.getSheetByName('History');
+  var cityLabel = (CITIES[PUBS_SHEET === 'Pubs' ? 'brighton' : ''] || {}).bias || '';
+  // Derive city from current PUBS_SHEET
+  for (var key in CITIES) {
+    if (CITIES[key].pubs === PUBS_SHEET) { cityLabel = CITIES[key].bias; break; }
+  }
+  sheet.appendRow([new Date().toISOString(), user, action, pub, summary, cityLabel]);
 }
 
 // ---- Helpers ----

@@ -49,86 +49,90 @@ export async function checkPassword(password) {
 
 // ---- Data ----
 
-export async function fetchAll(password) {
-  return apiCall({ action: 'getAll', password });
+export async function fetchAll(password, city) {
+  return apiCall({ action: 'getAll', password, city });
 }
 
-const CACHE_KEY = 'brighton-pubs-cache';
+function cacheKey(city) { return `pubs-cache-${city || 'brighton'}`; }
+function historyCacheKey() { return 'pubs-history-cache'; }
 
-export function getCachedData() {
+export function getCachedData(city) {
   try {
-    return JSON.parse(localStorage.getItem(CACHE_KEY));
+    return JSON.parse(localStorage.getItem(cacheKey(city)));
   } catch {
     return null;
   }
 }
 
-const HISTORY_CACHE_KEY = 'brighton-pubs-history-cache';
-
-function setCachedData(pubs, categories, history) {
+function setCachedData(city, pubs, categories, history) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ pubs, categories }));
+    localStorage.setItem(cacheKey(city), JSON.stringify({ pubs, categories }));
   } catch {}
   if (history) {
     try {
-      localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(history));
+      localStorage.setItem(historyCacheKey(), JSON.stringify(history));
     } catch {}
   }
 }
 
 export function getCachedHistory() {
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_CACHE_KEY));
+    return JSON.parse(localStorage.getItem(historyCacheKey()));
   } catch {
     return null;
   }
 }
 
-export async function fetchPubsAndCategories(password) {
+export async function fetchPubsAndCategories(password, city) {
   try {
-    const data = await apiCall({ action: 'getPubsAndCategories', password });
-    setCachedData(data.pubs, data.categories);
+    const data = await apiCall({ action: 'getPubsAndCategories', password, city });
+    setCachedData(city, data.pubs, data.categories);
     return data;
   } catch (e) {
     // Fall back to fetchAll if new endpoint not deployed yet
     if (e.message?.includes('Unknown action')) {
-      const data = await fetchAll(password);
-      setCachedData(data.pubs, data.categories, data.history);
-      return data; // includes .history when falling back
+      const data = await fetchAll(password, city);
+      // Old backend only has Brighton data — don't use it for other cities
+      if (city && city !== 'brighton') {
+        return { ok: true, pubs: [], categories: [] };
+      }
+      setCachedData(city, data.pubs, data.categories, data.history);
+      return data;
     }
     throw e;
   }
 }
 
-export async function fetchHistory(password) {
+export async function fetchHistory(password, city) {
   let result;
   try {
-    result = await apiCall({ action: 'getHistory', password });
+    result = await apiCall({ action: 'getHistory', password, city });
   } catch (e) {
     if (e.message?.includes('Unknown action')) {
-      const data = await fetchAll(password);
+      if (city && city !== 'brighton') {
+        return { ok: true, history: [] };
+      }
+      const data = await fetchAll(password, city);
       result = { ok: true, history: data.history };
     } else {
       throw e;
     }
   }
-  try { localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(result.history)); } catch {}
+  try { localStorage.setItem(historyCacheKey(), JSON.stringify(result.history)); } catch {}
   return result;
 }
 
-export async function addPub(password, user, pub) {
-  return apiCall({ action: 'addPub', password, user, pub });
+export async function addPub(password, user, pub, city) {
+  return apiCall({ action: 'addPub', password, user, pub, city });
 }
 
-export async function updatePub(password, user, pub, summary) {
-  return apiCall({ action: 'updatePub', password, user, pub, summary });
+export async function updatePub(password, user, pub, summary, city) {
+  return apiCall({ action: 'updatePub', password, user, pub, summary, city });
 }
 
-export async function removePub(password, user, pub) {
+export async function removePub(password, user, pub, city) {
   return apiCall({
-    action: 'deletePub',
-    password,
-    user,
+    action: 'deletePub', password, user, city,
     rowIndex: pub.rowIndex,
     name: pub.name,
     summary: pub.area || '',
@@ -137,56 +141,56 @@ export async function removePub(password, user, pub) {
 
 // ---- Categories ----
 
-export async function addCategory(password, name, color) {
-  return apiCall({ action: 'addCategory', password, name, color });
+export async function addCategory(password, name, color, city) {
+  return apiCall({ action: 'addCategory', password, name, color, city });
 }
 
-export async function updateCategory(password, rowIndex, name, color, oldName) {
-  return apiCall({ action: 'updateCategory', password, rowIndex, name, color, oldName });
+export async function updateCategory(password, rowIndex, name, color, oldName, city) {
+  return apiCall({ action: 'updateCategory', password, rowIndex, name, color, oldName, city });
 }
 
-export async function deleteCategory(password, rowIndex, name) {
-  return apiCall({ action: 'deleteCategory', password, rowIndex, name });
+export async function deleteCategory(password, rowIndex, name, city) {
+  return apiCall({ action: 'deleteCategory', password, rowIndex, name, city });
 }
 
 // ---- Events ----
 
-export function logEvent(password, user, eventType, summary) {
-  apiCall({ action: 'logEvent', password, user, eventType, summary }).catch(() => {});
+export function logEvent(password, user, eventType, summary, city) {
+  apiCall({ action: 'logEvent', password, user, eventType, summary, city }).catch(() => {});
 }
 
-export function logVisitIfStale(password, name) {
-  const key = 'brighton-pubs-last-visit';
+export function logVisitIfStale(password, name, city) {
+  const key = `pubs-last-visit-${city || 'brighton'}`;
   const last = localStorage.getItem(key);
   const now = Date.now();
   if (!last || now - Number(last) > 3600000) {
     localStorage.setItem(key, String(now));
-    logEvent(password, name, 'Visited', '');
+    logEvent(password, name, 'Visited', '', city);
   }
 }
 
 // ---- Refetch All ----
 
-export async function refetchAll(password, user) {
-  return apiCall({ action: 'refetchAll', password, user });
+export async function refetchAll(password, user, city) {
+  return apiCall({ action: 'refetchAll', password, user, city });
 }
 
 // ---- Bulk Tag ----
 
-export async function bulkTag(password, user, tag, names) {
-  return apiCall({ action: 'bulkTag', password, user, tag, names });
+export async function bulkTag(password, user, tag, names, city) {
+  return apiCall({ action: 'bulkTag', password, user, tag, names, city });
 }
 
 // ---- Places Search ----
 
-export async function searchPlaces(password, query, lat, lng) {
-  return apiCall({ action: 'searchPlaces', password, query, lat, lng });
+export async function searchPlaces(password, query, lat, lng, city) {
+  return apiCall({ action: 'searchPlaces', password, query, lat, lng, city });
 }
 
 // ---- Scrape ----
 
-export async function scrapeMapLink(password, url, placeName, placeLat, placeLng) {
-  return apiCall({ action: 'scrapeMapLink', password, url, placeName, placeLat, placeLng });
+export async function scrapeMapLink(password, url, placeName, placeLat, placeLng, city) {
+  return apiCall({ action: 'scrapeMapLink', password, url, placeName, placeLat, placeLng, city });
 }
 
 // ---- Diff ----
