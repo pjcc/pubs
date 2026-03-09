@@ -488,13 +488,19 @@ function scrapeMapLink(payload) {
     latLng = { lat: payload.placeLat, lng: payload.placeLng };
   }
 
-  // Follow redirects for shortened URLs (maps.app.goo.gl, goo.gl, etc.)
+  // Follow redirect chain for shortened URLs (maps.app.goo.gl, goo.gl, etc.)
   if (url && /goo\.gl|maps\.app/i.test(url)) {
-    try {
-      var resp = UrlFetchApp.fetch(url, { followRedirects: false, muteHttpExceptions: true });
-      var location = resp.getHeaders()['Location'] || resp.getHeaders()['location'];
-      if (location) url = location;
-    } catch (e) {}
+    for (var i = 0; i < 5; i++) {
+      try {
+        var resp = UrlFetchApp.fetch(url, { followRedirects: false, muteHttpExceptions: true });
+        var code = resp.getResponseCode();
+        if (code < 300 || code >= 400) break;
+        var headers = resp.getHeaders();
+        var location = headers['Location'] || headers['location'];
+        if (!location) break;
+        url = location;
+      } catch (e) { break; }
+    }
   }
 
   if (!query && url) {
