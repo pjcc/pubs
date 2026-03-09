@@ -621,7 +621,7 @@ a:hover { text-decoration: underline; }
 }
 
 .extra-info-trigger {
-  position: relative;
+  position: static;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -637,6 +637,7 @@ a:hover { text-decoration: underline; }
   position: absolute;
   bottom: 100%;
   left: 0;
+  right: 0;
   margin-bottom: 8px;
   z-index: 50;
 }
@@ -658,7 +659,6 @@ a:hover { text-decoration: underline; }
   box-shadow: var(--shadow);
   max-height: 400px;
   overflow-y: auto;
-  min-width: 260px;
 }
 
 @media (hover: hover) {
@@ -684,6 +684,7 @@ a:hover { text-decoration: underline; }
 
 .extra-info-row a {
   word-break: break-all;
+  text-decoration: underline;
 }
 
 .extra-info-row span:last-child {
@@ -713,6 +714,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  position: relative;
 }
 
 .pub-added-by {
