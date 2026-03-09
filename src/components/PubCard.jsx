@@ -69,7 +69,7 @@ function parseHours(raw) {
   if (!str.trim()) return null;
   // Split into day entries: "Monday: 9:00 AM – 10:00 PM, Tuesday: ..."
   const days = str.split(/,\s*(?=\w+day:)/i);
-  if (days.length <= 1) return { summary: str.trim(), lines: null };
+  if (days.length <= 1) return { summary: str.trim(), lines: null, isOpen: false };
   // Build tooltip lines and a short summary
   const lines = days.map((d) => d.trim());
   // Try to find today's hours for the summary
@@ -77,10 +77,47 @@ function parseHours(raw) {
   const today = dayNames[new Date().getDay()];
   const todayLine = lines.find((l) => l.startsWith(today));
   const summary = todayLine ? todayLine.replace(today + ': ', '') : lines[0];
-  return { summary, lines, today };
+  const isOpen = todayLine ? checkIfOpen(todayLine) : false;
+  return { summary, lines, today, isOpen };
+}
+
+function checkIfOpen(todayLine) {
+  // Format: "Monday: 11:00 AM – 11:00 PM" or "Monday: Closed" or "Monday: Open 24 hours"
+  const afterColon = todayLine.replace(/^\w+:\s*/, '');
+  if (/closed/i.test(afterColon)) return false;
+  if (/open 24/i.test(afterColon)) return true;
+  // Parse time ranges (may have multiple, e.g. "11:00 AM – 2:00 PM, 5:00 PM – 11:00 PM")
+  const ranges = afterColon.split(/,\s*/);
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  for (const range of ranges) {
+    const match = range.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?\s*[–\-]\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!match) continue;
+    let openH = parseInt(match[1]), openM = parseInt(match[2]);
+    let closeH = parseInt(match[4]), closeM = parseInt(match[5]);
+    const openAmPm = match[3] ? match[3].toUpperCase() : null;
+    const closeAmPm = match[6].toUpperCase();
+    if (openAmPm) {
+      if (openAmPm === 'PM' && openH !== 12) openH += 12;
+      if (openAmPm === 'AM' && openH === 12) openH = 0;
+    }
+    // No AM/PM on open time: assume AM if hour <= 12 (e.g. "12:00 – 11:00 PM" means noon)
+    if (closeAmPm === 'PM' && closeH !== 12) closeH += 12;
+    if (closeAmPm === 'AM' && closeH === 12) closeH = 0;
+    const openMins = openH * 60 + openM;
+    let closeMins = closeH * 60 + closeM;
+    // Handle overnight (e.g. 11:00 AM – 2:00 AM)
+    if (closeMins <= openMins) closeMins += 24 * 60;
+    if (nowMins >= openMins && nowMins < closeMins) return true;
+    // Also check if we're in the overnight portion (past midnight)
+    if (closeMins > 24 * 60 && nowMins + 24 * 60 < closeMins && nowMins + 24 * 60 >= openMins) return true;
+  }
+  return false;
 }
 
 import { getTagIcon } from '../tagIcons.js';
+
+export { parseHours };
 
 export default function PubCard({ pub, onEdit, onDelete, changeType, categories, isFavourite, onToggleFavourite, showIcons, openTooltip, onTooltipToggle }) {
   const hasNotes = pub.notes && String(pub.notes).trim();
@@ -128,8 +165,11 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
 
       <HoursLine hoursData={hoursData} hasHours={hasHours} rating={pub.mapsRating} tooltipId={`hours-${pub.rowIndex}`} open={openTooltip === `hours-${pub.rowIndex}`} onToggle={onTooltipToggle} />
 
-      {pub.tags.length > 0 && (
+      {(pub.tags.length > 0 || (hoursData && hoursData.isOpen)) && (
         <div className="pub-tags">
+          {hoursData && hoursData.isOpen && (
+            <span className="pub-tag tag-open-now">Open Now</span>
+          )}
           {pub.tags.map((tag) => {
             const color = catMap[tag] || '#4ecdc4';
             return (
@@ -168,9 +208,9 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
               </span>
             )
           )}
-          {pub.addedBy && (
+          {/* {pub.addedBy && (
             <span className="pub-added-by">Added by {pub.addedBy}{pub.lastUpdated ? ` · ${pub.lastUpdated}` : ''}</span>
-          )}
+          )} */}
         </div>
       </div>
     </div>

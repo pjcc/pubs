@@ -562,6 +562,11 @@ a:hover { text-decoration: underline; }
   font-weight: 500;
 }
 
+.tag-open-now {
+  background: #22c55e25;
+  color: #22c55e;
+}
+
 /* ---- Card details ---- */
 .pub-food {
   font-size: 13px;

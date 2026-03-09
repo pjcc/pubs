@@ -1,4 +1,5 @@
 import { getTagIcon } from '../tagIcons.js';
+import { parseHours } from './PubCard.jsx';
 
 export default function PubTable({ pubs, changedPubs, categories, favourites, onToggleFavourite, showIcons, sortBy, onSortChange, onEdit, onDelete }) {
   return (
@@ -21,6 +22,8 @@ export default function PubTable({ pubs, changedPubs, categories, favourites, on
             const isFav = favourites.has(String(pub.name).trim());
             const catMap = {};
             for (const c of categories) catMap[c.name] = c.color;
+            const hoursData = parseHours(pub.openingHours);
+            const isOpen = hoursData && hoursData.isOpen;
             return (
               <tr key={pub.rowIndex} className={`${changed ? 'row-changed' : ''} ${isFav ? 'row-favourite' : ''}`}>
                 <td>
@@ -39,6 +42,7 @@ export default function PubTable({ pubs, changedPubs, categories, favourites, on
                 <td>{pub.mapsRating != null ? (Number.isInteger(pub.mapsRating) ? pub.mapsRating.toFixed(1) : pub.mapsRating) : '-'}</td>
                 <td>
                   <div className="pub-tags">
+                    {isOpen && <span className="pub-tag tag-open-now">Open Now</span>}
                     {pub.tags.map((tag) => {
                       const color = catMap[tag] || '#4ecdc4';
                       return (
