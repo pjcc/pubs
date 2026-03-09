@@ -21,12 +21,21 @@ import { parseHours } from './components/PubCard.jsx';
 import Modal from './components/Modal.jsx';
 import Toast from './components/Toast.jsx';
 
+export const CITIES = [
+  { id: 'brighton', label: 'Brighton' },
+  { id: 'london', label: 'London' },
+  { id: 'glasgow', label: 'Glasgow' },
+];
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [initialising, setInitialising] = useState(true);
   const [loginError, setLoginError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [cachedInit] = useState(() => getCachedData());
+  const [city, setCity] = useState(() =>
+    localStorage.getItem('pubs-city') || 'brighton'
+  );
+  const [cachedInit] = useState(() => getCachedData(city));
   const [pubs, setPubs] = useState(() => cachedInit?.pubs || []);
   const [categories, setCategories] = useState(() => cachedInit?.categories || []);
   const [history, setHistory] = useState(() => getCachedHistory() || []);
@@ -36,7 +45,7 @@ export default function App() {
   const [showCategories, setShowCategories] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [view, setView] = useState(() =>
-    localStorage.getItem('brighton-pubs-view') || 'cards'
+    localStorage.getItem('pubs-view') || 'cards'
   );
   const [toast, setToast] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -44,14 +53,14 @@ export default function App() {
   const [sortBy, setSortBy] = useState('name');
   const [filters, setFilters] = useState({});
   const [lastSeen, setLastSeen] = useState(() =>
-    localStorage.getItem('brighton-pubs-last-seen') || '0'
+    localStorage.getItem('pubs-last-seen') || '0'
   );
   const [favourites, setFavourites] = useState(new Set());
   const [showIcons, setShowIcons] = useState(() =>
-    localStorage.getItem('brighton-pubs-show-icons') !== 'false'
+    localStorage.getItem('pubs-show-icons') !== 'false'
   );
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('brighton-pubs-theme');
+    const saved = localStorage.getItem('pubs-theme');
     if (saved === 'dark') return 'midnight';
     if (saved === 'light') return 'sand';
     return saved || 'forest';
@@ -79,7 +88,7 @@ export default function App() {
   function markAsSeen() {
     const now = new Date().toISOString();
     setLastSeen(now);
-    localStorage.setItem('brighton-pubs-last-seen', now);
+    localStorage.setItem('pubs-last-seen', now);
   }
 
   function handleViewChange(newView) {
@@ -88,8 +97,36 @@ export default function App() {
       loadHistory();
     }
     setView(newView);
-    localStorage.setItem('brighton-pubs-view', newView);
+    localStorage.setItem('pubs-view', newView);
   }
+
+  function handleCityChange(newCity) {
+    if (newCity === city) return;
+    localStorage.setItem('pubs-city', newCity);
+    setCity(newCity);
+    setSearch('');
+    setFilters({});
+    // Load cached data for the new city instantly
+    const cached = getCachedData(newCity);
+    setPubs(cached?.pubs || []);
+    setCategories(cached?.categories || []);
+    // History is shared across cities, no need to reset
+    // Load favourites for new city
+    if (session) {
+      try {
+        const raw = localStorage.getItem(`pubs-favs-${session.name.toLowerCase()}-${newCity}`);
+        setFavourites(raw ? new Set(JSON.parse(raw)) : new Set());
+      } catch { setFavourites(new Set()); }
+    }
+  }
+
+  // Trigger fresh data load when city changes
+  useEffect(() => {
+    if (session) {
+      loadData();
+      if (view === 'history') loadHistory();
+    }
+  }, [city]);
 
   useEffect(() => {
     if (theme === 'midnight') {
@@ -97,7 +134,7 @@ export default function App() {
     } else {
       document.documentElement.setAttribute('data-theme', theme);
     }
-    localStorage.setItem('brighton-pubs-theme', theme);
+    localStorage.setItem('pubs-theme', theme);
   }, [theme]);
 
   const showToast = useCallback((message, type = 'info') => {
@@ -111,9 +148,9 @@ export default function App() {
     const saved = getSavedSession();
     if (saved) {
       setSession(saved);
-      logVisitIfStale(saved.password, saved.name);
+      logVisitIfStale(saved.password, saved.name, city);
       try {
-        const raw = localStorage.getItem(`brighton-pubs-favs-${saved.name.toLowerCase()}`);
+        const raw = localStorage.getItem(`pubs-favs-${saved.name.toLowerCase()}-${city}`);
         if (raw) setFavourites(new Set(JSON.parse(raw)));
       } catch {}
     }
@@ -129,10 +166,9 @@ export default function App() {
 
   async function loadData(silent = false) {
     if (!session) return;
-    // Only show spinner if no cached data was loaded
-    if (!silent && !cachedInit) setLoading(true);
+    if (!silent && !getCachedData(city)) setLoading(true);
     try {
-      const data = await fetchPubsAndCategories(session.password);
+      const data = await fetchPubsAndCategories(session.password, city);
       setPubs(data.pubs);
       setCategories(data.categories || []);
       if (data.history) {
@@ -155,7 +191,7 @@ export default function App() {
   async function loadHistory() {
     if (!session) return;
     try {
-      const data = await fetchHistory(session.password);
+      const data = await fetchHistory(session.password, city);
       setHistory(data.history);
       setHistoryLoaded(true);
     } catch {}
@@ -168,7 +204,7 @@ export default function App() {
       if (valid) {
         saveSession(name, password);
         setSession({ name, password });
-        logEvent(password, name, 'Logged in', '');
+        logEvent(password, name, 'Logged in', '', city);
       } else {
         setLoginError('Incorrect password');
       }
@@ -211,7 +247,7 @@ export default function App() {
       showToast(`Added "${pub.name}"`);
     }
     try {
-      await addPub(session.password, session.name, pub);
+      await addPub(session.password, session.name, pub, city);
       loadData(true);
     } catch {
       showToast('Failed to save - refreshing...', 'error');
@@ -226,7 +262,7 @@ export default function App() {
     setShowForm(false);
     showToast(`Updated "${pub.name}"`);
     try {
-      await updatePub(session.password, session.name, pub, summary);
+      await updatePub(session.password, session.name, pub, summary, city);
     } catch {
       showToast('Failed to save - refreshing...', 'error');
       loadData(true);
@@ -240,7 +276,7 @@ export default function App() {
     setDeletingPub(null);
     showToast(`Deleted "${name}"`);
     try {
-      await removePub(session.password, session.name, deletingPub);
+      await removePub(session.password, session.name, deletingPub, city);
       loadData(true);
     } catch {
       showToast('Failed to delete - refreshing...', 'error');
@@ -252,7 +288,7 @@ export default function App() {
   async function handleAddCategory(name, color) {
     setCategories((prev) => [...prev, { rowIndex: Date.now(), name, color }]);
     try {
-      await apiAddCategory(session.password, name, color);
+      await apiAddCategory(session.password, name, color, city);
       loadData(true);
     } catch {
       showToast('Failed to save category', 'error');
@@ -271,7 +307,7 @@ export default function App() {
       })));
     }
     try {
-      await apiUpdateCategory(session.password, cat.rowIndex, newName, newColor, cat.name);
+      await apiUpdateCategory(session.password, cat.rowIndex, newName, newColor, cat.name, city);
       loadData(true);
     } catch {
       showToast('Failed to update category', 'error');
@@ -286,7 +322,7 @@ export default function App() {
       tags: p.tags.filter((t) => t !== cat.name),
     })));
     try {
-      await apiDeleteCategory(session.password, cat.rowIndex, cat.name);
+      await apiDeleteCategory(session.password, cat.rowIndex, cat.name, city);
       loadData(true);
     } catch {
       showToast('Failed to delete category', 'error');
@@ -296,7 +332,7 @@ export default function App() {
 
   function toggleIcons() {
     setShowIcons((v) => {
-      localStorage.setItem('brighton-pubs-show-icons', String(!v));
+      localStorage.setItem('pubs-show-icons', String(!v));
       return !v;
     });
   }
@@ -309,7 +345,7 @@ export default function App() {
       else next.add(key);
       if (session) {
         localStorage.setItem(
-          `brighton-pubs-favs-${session.name.toLowerCase()}`,
+          `pubs-favs-${session.name.toLowerCase()}-${city}`,
           JSON.stringify([...next])
         );
       }
@@ -389,6 +425,8 @@ export default function App() {
         onManageCategories={() => setShowCategories(true)}
         showIcons={showIcons}
         onToggleIcons={toggleIcons}
+        city={city}
+        onCityChange={handleCityChange}
       />
 
       {loading ? (
@@ -396,7 +434,7 @@ export default function App() {
       ) : view === 'history' ? (
         <HistoryView history={history} loading={!historyLoaded} />
       ) : view === 'map' ? (
-        <MapView pubs={filteredPubs} theme={theme} showIcons={showIcons} />
+        <MapView pubs={filteredPubs} theme={theme} showIcons={showIcons} city={city} favourites={favourites} />
       ) : (
         <PubList
           pubs={filteredPubs}
@@ -436,6 +474,7 @@ export default function App() {
           {bulkMode && !editingPub ? (
             <BulkAddForm
               password={session.password}
+              city={city}
               onAdd={handleAddPub}
               onDone={() => { setProgress(null); loadData(true); }}
               onCancel={() => { setShowForm(false); setBulkMode(false); }}
@@ -446,6 +485,7 @@ export default function App() {
               key={editingPub ? `edit-${editingPub.rowIndex}` : 'add'}
               pub={editingPub}
               password={session.password}
+              city={city}
               categories={categories}
               showIcons={showIcons}
               existingPubs={pubs}
@@ -466,7 +506,7 @@ export default function App() {
             onRefetchAll={async () => {
               setProgress({ label: 'Refetching pub details...', current: 0, total: 0 });
               try {
-                const result = await refetchAll(session.password, session.name);
+                const result = await refetchAll(session.password, session.name, city);
                 setProgress(null);
                 if (result.ok) {
                   showToast(`Updated ${result.updated} pubs (${result.skipped} skipped, ${result.errors || 0} errors)`);

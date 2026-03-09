@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { searchPlaces, scrapeMapLink } from '../services/api.js';
 
-export default function BulkAddForm({ password, onAdd, onDone, onCancel, onProgress }) {
+export default function BulkAddForm({ password, city, onAdd, onDone, onCancel, onProgress }) {
   const [text, setText] = useState('');
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState([]);
@@ -35,7 +35,7 @@ export default function BulkAddForm({ password, onAdd, onDone, onCancel, onProgr
 
       try {
         const loc = userLocation.current;
-        const search = await searchPlaces(password, name, loc?.lat, loc?.lng);
+        const search = await searchPlaces(password, name, loc?.lat, loc?.lng, city);
         if (!search.ok || !search.results?.length) {
           setResults((r) => r.map((x, j) => j === i ? { ...x, status: 'not_found' } : x));
           continue;
@@ -44,7 +44,7 @@ export default function BulkAddForm({ password, onAdd, onDone, onCancel, onProgr
         const place = search.results[0];
         setResults((r) => r.map((x, j) => j === i ? { ...x, status: 'fetching', matched: place.name } : x));
 
-        const detail = await scrapeMapLink(password, place.mapsUri, place.name, place.lat, place.lng);
+        const detail = await scrapeMapLink(password, place.mapsUri, place.name, place.lat, place.lng, city);
 
         // Start with search data as baseline
         const baseExtra = {};

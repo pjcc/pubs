@@ -3,8 +3,11 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getTagIcon } from '../tagIcons.js';
 
-// Default map centre
-const BRIGHTON = [50.8225, -0.1372];
+const CITY_CENTRES = {
+  brighton: [50.8225, -0.1372],
+  london: [51.5074, -0.1278],
+  glasgow: [55.8642, -4.2518],
+};
 
 function esc(str) {
   const el = document.createElement('span');
@@ -60,7 +63,7 @@ function buildTooltipHtml(pub, showIcons) {
   return `<div class="marker-label-name">${esc(pub.name)}</div>${iconsLine}`;
 }
 
-export default function MapView({ pubs, theme, showIcons }) {
+export default function MapView({ pubs, theme, showIcons, city, favourites }) {
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const containerRef = useRef(null);
@@ -78,7 +81,7 @@ export default function MapView({ pubs, theme, showIcons }) {
     } else if (coords.length === 1) {
       map.setView(coords[0], 15);
     } else {
-      map.setView(BRIGHTON, 14);
+      map.setView(CITY_CENTRES[city] || CITY_CENTRES.brighton, 14);
     }
 
     const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -168,12 +171,14 @@ export default function MapView({ pubs, theme, showIcons }) {
       const icon = buildMarkerIcon(color);
       const marker = L.marker(coords, { icon }).addTo(layerRef.current);
 
+      const isFav = favourites && favourites.has(String(pub.name).trim());
+      if (isFav) marker.setZIndexOffset(1000);
       const tooltip = marker.bindTooltip(buildTooltipHtml(pub, showIcons), {
         permanent: true,
         interactive: true,
         direction: 'top',
         offset: [0, -4],
-        className: 'pub-marker-label',
+        className: `pub-marker-label${isFav ? ' marker-fav' : ''}`,
       }).getTooltip();
 
       if (tooltip) {
@@ -198,8 +203,10 @@ export default function MapView({ pubs, theme, showIcons }) {
       mapRef.current.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
     } else if (bounds.length === 1) {
       mapRef.current.setView(bounds[0], 15);
+    } else {
+      mapRef.current.setView(CITY_CENTRES[city] || CITY_CENTRES.brighton, 14);
     }
-  }, [pubs, theme, showIcons]);
+  }, [pubs, theme, showIcons, city, favourites]);
 
   return <div ref={containerRef} className="map-container" />;
 }

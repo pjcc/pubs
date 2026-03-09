@@ -4,7 +4,7 @@ import { getTagIcon } from '../tagIcons.js';
 
 const FOOD_OPTIONS = ['', 'Full menu', 'Bar snacks', 'Sunday roasts', 'Pizza', 'No food'];
 
-export default function PubForm({ pub, onSubmit, onCancel, password, categories, showIcons, existingPubs }) {
+export default function PubForm({ pub, onSubmit, onCancel, password, city, categories, showIcons, existingPubs }) {
   const isEdit = !!pub;
   const [form, setForm] = useState(() => ({
     name: String(pub?.name || ''),
@@ -42,7 +42,7 @@ export default function PubForm({ pub, onSubmit, onCancel, password, categories,
     setSearching(true);
     try {
       const loc = userLocation.current;
-      const res = await searchPlaces(password, query, loc?.lat, loc?.lng);
+      const res = await searchPlaces(password, query, loc?.lat, loc?.lng, city);
       if (res.ok && res.results) {
         setSuggestions(res.results);
         setShowSuggestions(true);
@@ -69,7 +69,7 @@ export default function PubForm({ pub, onSubmit, onCancel, password, categories,
       setFetching(true);
       setFetchError(null);
       try {
-        const data = await scrapeMapLink(password, s.mapsUri, s.name, s.lat, s.lng);
+        const data = await scrapeMapLink(password, s.mapsUri, s.name, s.lat, s.lng, city);
         if (data.ok) {
           setForm((f) => {
             const updated = { ...f, name: s.name, mapsLink: s.mapsUri };
@@ -138,7 +138,7 @@ export default function PubForm({ pub, onSubmit, onCancel, password, categories,
     setFetching(true);
     setFetchError(null);
     try {
-      const data = await scrapeMapLink(password, form.mapsLink.trim(), form.name.trim() || undefined);
+      const data = await scrapeMapLink(password, form.mapsLink.trim(), form.name.trim() || undefined, undefined, undefined, city);
       if (data.ok) {
         setForm((f) => {
           const updated = { ...f };

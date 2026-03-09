@@ -41,6 +41,7 @@ export default function HistoryView({ history, loading }) {
             <div>
               <ActionBadge action={h.action} />
               <strong>{h.pub}</strong>
+              {h.city && <span className="history-city">{h.city}</span>}
             </div>
             <span className="history-ts">{formatTimestamp(h.timestamp)}</span>
           </div>
