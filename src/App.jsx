@@ -371,7 +371,7 @@ export default function App() {
         <PubList
           pubs={filteredPubs}
           view={view}
-          changedPubs={changedPubs}
+          changedPubs={{}}
           categories={categories}
           favourites={favourites}
           onToggleFavourite={toggleFavourite}
