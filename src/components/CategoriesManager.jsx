@@ -73,7 +73,7 @@ function CategoryRow({ cat, onUpdate, onDelete }) {
   );
 }
 
-export default function CategoriesManager({ categories, onAdd, onUpdate, onDelete }) {
+export default function CategoriesManager({ categories, onAdd, onUpdate, onDelete, onRefetchAll }) {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState(PALETTE[0]);
@@ -114,6 +114,17 @@ export default function CategoriesManager({ categories, onAdd, onUpdate, onDelet
         <button className="btn btn-secondary" onClick={() => setAdding(true)} style={{ marginTop: 12 }}>
           + Add category
         </button>
+      )}
+
+      {onRefetchAll && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+          <button className="btn btn-secondary" onClick={onRefetchAll}>
+            Refetch all pub details
+          </button>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            Re-fetches area, food, hours, and ratings from Google for pubs missing data.
+          </p>
+        </div>
       )}
     </div>
   );

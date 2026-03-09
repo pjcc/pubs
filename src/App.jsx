@@ -7,6 +7,7 @@ import {
   updateCategory as apiUpdateCategory,
   deleteCategory as apiDeleteCategory,
   buildDiffSummary, logEvent, logVisitIfStale,
+  refetchAll,
 } from './services/api.js';
 import Header from './components/Header.jsx';
 import LoginScreen from './components/LoginScreen.jsx';
@@ -428,6 +429,20 @@ export default function App() {
             onAdd={handleAddCategory}
             onUpdate={handleUpdateCategory}
             onDelete={handleDeleteCategory}
+            onRefetchAll={async () => {
+              showToast('Refetching details for all pubs...');
+              try {
+                const result = await refetchAll(session.password, session.name);
+                if (result.ok) {
+                  showToast(`Updated ${result.updated} pubs (${result.skipped} skipped, ${result.errors || 0} errors)`);
+                  loadData(true);
+                } else {
+                  showToast(result.error || 'Refetch failed', 'error');
+                }
+              } catch (e) {
+                showToast('Refetch failed: ' + e.message, 'error');
+              }
+            }}
           />
         </Modal>
       )}
