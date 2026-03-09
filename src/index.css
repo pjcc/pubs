@@ -41,11 +41,11 @@
   --text: #c8dcc8;
   --text-light: #e0f0e0;
   --text-muted: #6a9a70;
-  --accent: #e05540;
-  --accent-teal: #5cb870;
-  --accent-teal-bg: rgba(92, 184, 112, 0.1);
-  --tag-bg: rgba(92, 184, 112, 0.15);
-  --tag-text: #5cb870;
+  --accent: #b8862e;
+  --accent-teal: #b8862e;
+  --accent-teal-bg: rgba(184, 134, 46, 0.1);
+  --tag-bg: rgba(184, 134, 46, 0.15);
+  --tag-text: #b8862e;
   --shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
