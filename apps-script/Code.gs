@@ -585,6 +585,10 @@ function scrapeMapLink(payload) {
     var placeMatch = url.match(/\/maps\/place\/([^/@]+)/);
     if (placeMatch) {
       query = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')).trim();
+      // Collapse single-letter-spaced names: "A L P H A B E T" -> "ALPHABET"
+      if (/^(.\s)+.$/.test(query)) {
+        query = query.replace(/\s/g, '');
+      }
     }
   }
 
@@ -619,8 +623,13 @@ function scrapeMapLink(payload) {
       maxResultCount: 1,
     };
     if (latLng) {
-      body.locationBias = {
-        circle: { center: { latitude: latLng.lat, longitude: latLng.lng }, radius: 500 }
+      // Use strict restriction (not just bias) when we have coordinates from a URL
+      var delta = 0.05; // ~5km
+      body.locationRestriction = {
+        rectangle: {
+          low: { latitude: latLng.lat - delta, longitude: latLng.lng - delta },
+          high: { latitude: latLng.lat + delta, longitude: latLng.lng + delta }
+        }
       };
     }
 
