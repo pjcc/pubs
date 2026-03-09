@@ -40,18 +40,9 @@ function StarRating({ rating }) {
   return <span className="pub-rating" title={`${rating} on Google Maps`}>{'★'} {formatRating(rating)}</span>;
 }
 
-function HoursLine({ hoursData, hasHours, area, rating, tooltipId, open, onToggle }) {
+function HoursLine({ hoursData, hasHours, rating, tooltipId, open, onToggle }) {
   return (
     <div className="pub-card-meta">
-      {area && (
-        <span className="pub-meta-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-          {area}
-        </span>
-      )}
       {hasHours && (
         <span className="pub-meta-item pub-hours-inline">
           {hoursData.lines ? (
@@ -140,7 +131,7 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
         </div>
       </div>
 
-      <HoursLine hoursData={hoursData} hasHours={hasHours} area={pub.area} rating={pub.mapsRating} tooltipId={`hours-${pub.rowIndex}`} open={openTooltip === `hours-${pub.rowIndex}`} onToggle={onTooltipToggle} />
+      <HoursLine hoursData={hoursData} hasHours={hasHours} rating={pub.mapsRating} tooltipId={`hours-${pub.rowIndex}`} open={openTooltip === `hours-${pub.rowIndex}`} onToggle={onTooltipToggle} />
 
       {pub.tags.length > 0 && (
         <div className="pub-tags">
@@ -162,6 +153,15 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
         {hasNotes && <div className="pub-notes">{pub.notes}</div>}
 
         <div className="pub-card-bottom">
+          {pub.area && (
+            <span className="pub-meta-item pub-area-bottom">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              {pub.area}
+            </span>
+          )}
           <ExtraInfo raw={pub.extraInfo} tooltipId={`info-${pub.rowIndex}`} open={openTooltip === `info-${pub.rowIndex}`} onToggle={onTooltipToggle} />
           {pub.addedBy && (
             <span className="pub-added-by">Added by {pub.addedBy}{pub.lastUpdated ? ` · ${pub.lastUpdated}` : ''}</span>
