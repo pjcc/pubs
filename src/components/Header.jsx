@@ -107,6 +107,15 @@ export default function Header({
             >Top Rated</button>
           </div>
           <div className="filter-chips">
+            <button
+              className={`chip ${filters._openNow ? 'active' : ''}`}
+              data-color
+              style={{
+                '--chip-color': '#22c55e',
+                ...(filters._openNow ? { borderColor: '#22c55e', color: '#22c55e', background: '#22c55e18' } : {}),
+              }}
+              onClick={() => toggleFilter('_openNow')}
+            >Open Now</button>
             {[...categories].sort((a, b) => {
               const countA = pubs.filter((p) => p.tags.includes(a.name)).length;
               const countB = pubs.filter((p) => p.tags.includes(b.name)).length;

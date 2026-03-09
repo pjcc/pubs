@@ -17,6 +17,7 @@ import HistoryView from './components/HistoryView.jsx';
 import CategoriesManager from './components/CategoriesManager.jsx';
 import MapView from './components/MapView.jsx';
 import BulkAddForm from './components/BulkAddForm.jsx';
+import { parseHours } from './components/PubCard.jsx';
 import Modal from './components/Modal.jsx';
 import Toast from './components/Toast.jsx';
 
@@ -304,7 +305,13 @@ export default function App() {
         p.notes.toLowerCase().includes(q)
       );
     }
-    const activeTags = Object.entries(filters).filter(([, v]) => v).map(([k]) => k);
+    if (filters._openNow) {
+      list = list.filter((p) => {
+        const h = parseHours(p.openingHours);
+        return h && h.isOpen;
+      });
+    }
+    const activeTags = Object.entries(filters).filter(([k, v]) => v && k !== '_openNow').map(([k]) => k);
     if (activeTags.length) {
       list = list.filter((p) => activeTags.every((t) => p.tags.includes(t)));
     }
