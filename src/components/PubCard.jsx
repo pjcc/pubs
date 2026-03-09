@@ -1,5 +1,4 @@
-function ExtraInfo({ raw }) {
-  const [open, setOpen] = useState(false);
+function ExtraInfo({ raw, tooltipId, open, onToggle }) {
   if (!raw) return null;
   let info;
   try { info = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { return null; }
@@ -7,7 +6,7 @@ function ExtraInfo({ raw }) {
   if (!entries.length) return null;
   return (
     <div className="extra-info-wrap">
-      <span className={`extra-info-trigger ${open ? 'open' : ''}`} tabIndex={0} onTouchEnd={(e) => { if (e.target.closest('.extra-info-tooltip')) return; e.preventDefault(); setOpen((v) => !v); }}>
+      <span className={`extra-info-trigger ${open ? 'open' : ''}`} tabIndex={0} onTouchEnd={(e) => { if (e.target.closest('.extra-info-tooltip')) return; e.preventDefault(); onToggle(open ? null : tooltipId); }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
         </svg>
@@ -41,8 +40,7 @@ function StarRating({ rating }) {
   return <span className="pub-rating" title={`${rating} on Google Maps`}>{'★'} {formatRating(rating)}</span>;
 }
 
-function HoursLine({ hoursData, hasHours, area, rating }) {
-  const [open, setOpen] = useState(false);
+function HoursLine({ hoursData, hasHours, area, rating, tooltipId, open, onToggle }) {
   return (
     <div className="pub-card-meta">
       {area && (
@@ -57,7 +55,7 @@ function HoursLine({ hoursData, hasHours, area, rating }) {
       {hasHours && (
         <span className="pub-meta-item pub-hours-inline">
           {hoursData.lines ? (
-            <span className={`hours-today ${open ? 'open' : ''}`} tabIndex={0} onTouchStart={(e) => { e.preventDefault(); setOpen((v) => !v); }}>
+            <span className={`hours-today ${open ? 'open' : ''}`} tabIndex={0} onTouchStart={(e) => { e.preventDefault(); onToggle(open ? null : tooltipId); }}>
               {hoursData.summary} <span className="hours-hint">(today)</span>
               <div className="hours-tooltip">
                 {hoursData.lines.map((line, i) => (
@@ -91,10 +89,9 @@ function parseHours(raw) {
   return { summary, lines, today };
 }
 
-import { useState } from 'react';
 import { getTagIcon } from '../tagIcons.js';
 
-export default function PubCard({ pub, onEdit, onDelete, changeType, categories, isFavourite, onToggleFavourite, showIcons }) {
+export default function PubCard({ pub, onEdit, onDelete, changeType, categories, isFavourite, onToggleFavourite, showIcons, openTooltip, onTooltipToggle }) {
   const hasNotes = pub.notes && String(pub.notes).trim();
   const hasFood = pub.food && String(pub.food).trim();
   const hoursData = parseHours(pub.openingHours);
@@ -143,7 +140,7 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
         </div>
       </div>
 
-      <HoursLine hoursData={hoursData} hasHours={hasHours} area={pub.area} rating={pub.mapsRating} />
+      <HoursLine hoursData={hoursData} hasHours={hasHours} area={pub.area} rating={pub.mapsRating} tooltipId={`hours-${pub.rowIndex}`} open={openTooltip === `hours-${pub.rowIndex}`} onToggle={onTooltipToggle} />
 
       {pub.tags.length > 0 && (
         <div className="pub-tags">
@@ -165,7 +162,7 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
         {hasNotes && <div className="pub-notes">{pub.notes}</div>}
 
         <div className="pub-card-bottom">
-          <ExtraInfo raw={pub.extraInfo} />
+          <ExtraInfo raw={pub.extraInfo} tooltipId={`info-${pub.rowIndex}`} open={openTooltip === `info-${pub.rowIndex}`} onToggle={onTooltipToggle} />
           {pub.addedBy && (
             <span className="pub-added-by">Added by {pub.addedBy}{pub.lastUpdated ? ` · ${pub.lastUpdated}` : ''}</span>
           )}
