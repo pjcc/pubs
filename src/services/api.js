@@ -63,10 +63,25 @@ export function getCachedData() {
   }
 }
 
-function setCachedData(pubs, categories) {
+const HISTORY_CACHE_KEY = 'brighton-pubs-history-cache';
+
+function setCachedData(pubs, categories, history) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ pubs, categories }));
   } catch {}
+  if (history) {
+    try {
+      localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(history));
+    } catch {}
+  }
+}
+
+export function getCachedHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_CACHE_KEY));
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchPubsAndCategories(password) {
@@ -78,23 +93,27 @@ export async function fetchPubsAndCategories(password) {
     // Fall back to fetchAll if new endpoint not deployed yet
     if (e.message?.includes('Unknown action')) {
       const data = await fetchAll(password);
-      setCachedData(data.pubs, data.categories);
-      return data;
+      setCachedData(data.pubs, data.categories, data.history);
+      return data; // includes .history when falling back
     }
     throw e;
   }
 }
 
 export async function fetchHistory(password) {
+  let result;
   try {
-    return await apiCall({ action: 'getHistory', password });
+    result = await apiCall({ action: 'getHistory', password });
   } catch (e) {
     if (e.message?.includes('Unknown action')) {
       const data = await fetchAll(password);
-      return { ok: true, history: data.history };
+      result = { ok: true, history: data.history };
+    } else {
+      throw e;
     }
-    throw e;
   }
+  try { localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(result.history)); } catch {}
+  return result;
 }
 
 export async function addPub(password, user, pub) {
