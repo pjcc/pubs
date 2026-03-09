@@ -47,7 +47,7 @@ function HoursLine({ hoursData, hasHours, rating, tooltipId, open, onToggle }) {
         <span className="pub-meta-item pub-hours-inline">
           {hoursData.lines ? (
             <span className={`hours-today ${open ? 'open' : ''}`} tabIndex={0} onTouchStart={(e) => { e.preventDefault(); onToggle(open ? null : tooltipId); }}>
-              {hoursData.summary} <span className="hours-hint">(today)</span>
+              {hoursData.summary}
               <div className="hours-tooltip">
                 {hoursData.lines.map((line, i) => (
                   <div key={i} className={line.startsWith(hoursData.today) ? 'hours-today-line' : ''}>{line}</div>
