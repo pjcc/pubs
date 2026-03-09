@@ -152,6 +152,8 @@ function handleRequest(payload) {
       return scrapeMapLink(payload);
     case 'bulkTag':
       return bulkTag(payload);
+    case 'refetchAll':
+      return refetchAll(payload);
     case 'logEvent':
       return logEvent(payload);
     default:
@@ -418,6 +420,81 @@ function bulkTag(payload) {
   }
 
   return { ok: true, updated: updated };
+}
+
+// ---- Refetch All ----
+
+function refetchAll(payload) {
+  ensureSheets();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(PUBS_SHEET);
+  if (sheet.getLastRow() <= 1) return { ok: true, updated: 0, skipped: 0 };
+
+  var numRows = sheet.getLastRow() - 1;
+  var data = sheet.getRange(2, 1, numRows, PUB_HEADERS.length).getValues();
+  // Headers: Name(0), Area(1), Maps Link(2), Rating(3), Tags(4), Food(5), Hours(6), Notes(7), Extra(8), AddedBy(9), Updated(10)
+
+  var updated = 0;
+  var skipped = 0;
+  var errors = 0;
+
+  for (var i = 0; i < data.length; i++) {
+    var name = String(data[i][0] || '').trim();
+    var area = String(data[i][1] || '').trim();
+    var food = String(data[i][5] || '').trim();
+    var extraRaw = String(data[i][8] || '').trim();
+
+    // Skip pubs that already have area AND food
+    if (area && food) { skipped++; continue; }
+    if (!name) { skipped++; continue; }
+
+    // Try to get lat/lng from extraInfo
+    var latLng = null;
+    if (extraRaw) {
+      try {
+        var info = JSON.parse(extraRaw);
+        if (info._lat != null && info._lng != null) {
+          latLng = { lat: info._lat, lng: info._lng };
+        }
+      } catch (e) {}
+    }
+
+    // Call scrapeMapLink internally
+    try {
+      var result = scrapeMapLink({ url: data[i][2], placeName: name, placeLat: latLng ? latLng.lat : null, placeLng: latLng ? latLng.lng : null });
+      if (!result.ok) { errors++; continue; }
+
+      var changed = false;
+      if (!area && result.area) { data[i][1] = result.area; changed = true; }
+      if (!food && (result.food || result.foodHints)) { data[i][5] = result.food || result.foodHints; changed = true; }
+      if (result.rating != null && (data[i][3] === '' || data[i][3] == null)) { data[i][3] = result.rating; changed = true; }
+      if (result.openingHours && !String(data[i][6] || '').trim()) { data[i][6] = result.openingHours; changed = true; }
+      if (result.extraInfo) {
+        try {
+          var newExtra = JSON.parse(result.extraInfo);
+          // Preserve existing _lat/_lng
+          if (latLng) { newExtra._lat = latLng.lat; newExtra._lng = latLng.lng; }
+          else if (result.lat != null) { newExtra._lat = result.lat; newExtra._lng = result.lng; }
+          data[i][8] = JSON.stringify(newExtra);
+          changed = true;
+        } catch (e) {}
+      }
+
+      if (changed) updated++;
+      else skipped++;
+    } catch (e) {
+      errors++;
+    }
+
+    // Avoid hitting API rate limits
+    if (i < data.length - 1) Utilities.sleep(200);
+  }
+
+  // Write all data back
+  sheet.getRange(2, 1, numRows, PUB_HEADERS.length).setValues(data);
+  logHistory(payload.user || 'unknown', 'Refetch', '', updated + ' pubs updated');
+
+  return { ok: true, updated: updated, skipped: skipped, errors: errors };
 }
 
 // ---- Events ----

@@ -102,6 +102,12 @@ export function logVisitIfStale(password, name) {
   }
 }
 
+// ---- Refetch All ----
+
+export async function refetchAll(password, user) {
+  return apiCall({ action: 'refetchAll', password, user });
+}
+
 // ---- Bulk Tag ----
 
 export async function bulkTag(password, user, tag, names) {
