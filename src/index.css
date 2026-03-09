@@ -617,7 +617,7 @@ a:hover { text-decoration: underline; }
 
 /* ---- Extra Info Tooltip ---- */
 .extra-info-wrap {
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .extra-info-trigger {
@@ -725,7 +725,9 @@ a:hover { text-decoration: underline; }
   gap: 4px;
   font-size: 12px;
   color: var(--text-muted);
+  line-height: 1;
 }
+.pub-area-bottom svg { flex-shrink: 0; }
 
 .pub-added-by {
   font-size: 11px;
