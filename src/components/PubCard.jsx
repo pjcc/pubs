@@ -153,16 +153,16 @@ export default function PubCard({ pub, onEdit, onDelete, changeType, categories,
         {hasNotes && <div className="pub-notes">{pub.notes}</div>}
 
         <div className="pub-card-bottom">
+          <ExtraInfo raw={pub.extraInfo} tooltipId={`info-${pub.rowIndex}`} open={openTooltip === `info-${pub.rowIndex}`} onToggle={onTooltipToggle} />
           {pub.area && (
-            <span className="pub-meta-item pub-area-bottom">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <span className="pub-area-bottom">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
               {pub.area}
             </span>
           )}
-          <ExtraInfo raw={pub.extraInfo} tooltipId={`info-${pub.rowIndex}`} open={openTooltip === `info-${pub.rowIndex}`} onToggle={onTooltipToggle} />
           {pub.addedBy && (
             <span className="pub-added-by">Added by {pub.addedBy}{pub.lastUpdated ? ` · ${pub.lastUpdated}` : ''}</span>
           )}
