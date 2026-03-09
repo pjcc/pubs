@@ -535,7 +535,7 @@ function scrapeMapLink(payload) {
       'places.accessibilityOptions', 'places.paymentOptions',
       'places.dineIn', 'places.takeout', 'places.delivery',
       'places.reservable', 'places.currentOpeningHours',
-      'places.addressComponents',
+      'places.addressComponents', 'places.primaryTypeDisplayName',
     ].join(',');
     var body = {
       textQuery: latLng ? query : query + ' Brighton',
@@ -652,11 +652,33 @@ function scrapeMapLink(payload) {
       }
     }
 
+    // Extract food/cuisine from place type
+    var food = '';
+    if (place.primaryTypeDisplayName) {
+      var typeName = place.primaryTypeDisplayName.text || '';
+      // Extract cuisine from type names like "Pizza restaurant", "Thai restaurant"
+      var cuisineMatch = typeName.match(/^(.+?)\s*restaurant$/i);
+      if (cuisineMatch) {
+        food = cuisineMatch[1];
+      } else if (/gastropub/i.test(typeName)) {
+        food = 'Full menu';
+      }
+    }
+    // Build food hints from serves* flags
+    var foodTypes = [];
+    if (place.servesBreakfast === true) foodTypes.push('Breakfast');
+    if (place.servesBrunch === true) foodTypes.push('Brunch');
+    if (place.servesLunch === true) foodTypes.push('Lunch');
+    if (place.servesDinner === true) foodTypes.push('Dinner');
+    var foodHints = foodTypes.length ? foodTypes.join(', ') : '';
+
     return {
       ok: true,
       name: place.displayName ? place.displayName.text : '',
       rating: place.rating || null,
       area: area,
+      food: food,
+      foodHints: foodHints,
       openingHours: hours,
       features: features,
       extraInfo: JSON.stringify(extra),

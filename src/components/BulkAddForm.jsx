@@ -65,6 +65,7 @@ export default function BulkAddForm({ password, onAdd, onDone, onCancel }) {
         if (detail.ok) {
           if (detail.rating != null) pub.mapsRating = detail.rating;
           if (detail.area) pub.area = detail.area;
+          if (detail.food || detail.foodHints) pub.food = detail.food || detail.foodHints;
           if (detail.openingHours) pub.openingHours = detail.openingHours;
           if (detail.extraInfo) {
             try {
