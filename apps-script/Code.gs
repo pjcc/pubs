@@ -134,6 +134,10 @@ function handleRequest(payload) {
   switch (action) {
     case 'getAll':
       return getAll();
+    case 'getPubsAndCategories':
+      return getPubsAndCategories();
+    case 'getHistory':
+      return getHistory();
     case 'addPub':
       return addPub(payload);
     case 'updatePub':
@@ -249,6 +253,48 @@ function getAll() {
   }).reverse();
 
   return { ok: true, pubs: pubs, categories: categories, history: history };
+}
+
+function getPubsAndCategories() {
+  ensureSheets();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  var pubsSheet = ss.getSheetByName(PUBS_SHEET);
+  var pubsData = pubsSheet.getLastRow() > 1
+    ? pubsSheet.getRange(2, 1, pubsSheet.getLastRow() - 1, PUB_HEADERS.length).getValues()
+    : [];
+  var pubs = pubsData.map(function(row, i) {
+    return {
+      rowIndex: i + 2, name: row[0] || '', area: row[1] || '', mapsLink: row[2] || '',
+      mapsRating: row[3] !== '' && row[3] != null ? Number(row[3]) : null,
+      tags: splitList(row[4]), food: row[5] || '', openingHours: row[6] || '',
+      notes: row[7] || '', extraInfo: row[8] || '', addedBy: row[9] || '',
+      lastUpdated: formatDateValue(row[10]),
+    };
+  });
+
+  var catSheet = ss.getSheetByName(CATEGORIES_SHEET);
+  var catData = catSheet.getLastRow() > 1
+    ? catSheet.getRange(2, 1, catSheet.getLastRow() - 1, 2).getValues()
+    : [];
+  var categories = catData.map(function(row, i) {
+    return { rowIndex: i + 2, name: row[0] || '', color: row[1] || '#4ecdc4' };
+  });
+
+  return { ok: true, pubs: pubs, categories: categories };
+}
+
+function getHistory() {
+  ensureSheets();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var historySheet = ss.getSheetByName(HISTORY_SHEET);
+  var historyData = historySheet.getLastRow() > 1
+    ? historySheet.getRange(2, 1, historySheet.getLastRow() - 1, HISTORY_HEADERS.length).getValues()
+    : [];
+  var history = historyData.map(function(row) {
+    return { timestamp: row[0] || '', user: row[1] || '', action: row[2] || '', pub: row[3] || '', summary: row[4] || '' };
+  }).reverse();
+  return { ok: true, history: history };
 }
 
 // ---- Pub CRUD ----

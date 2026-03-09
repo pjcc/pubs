@@ -53,6 +53,50 @@ export async function fetchAll(password) {
   return apiCall({ action: 'getAll', password });
 }
 
+const CACHE_KEY = 'brighton-pubs-cache';
+
+export function getCachedData() {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function setCachedData(pubs, categories) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ pubs, categories }));
+  } catch {}
+}
+
+export async function fetchPubsAndCategories(password) {
+  try {
+    const data = await apiCall({ action: 'getPubsAndCategories', password });
+    setCachedData(data.pubs, data.categories);
+    return data;
+  } catch (e) {
+    // Fall back to fetchAll if new endpoint not deployed yet
+    if (e.message?.includes('Unknown action')) {
+      const data = await fetchAll(password);
+      setCachedData(data.pubs, data.categories);
+      return data;
+    }
+    throw e;
+  }
+}
+
+export async function fetchHistory(password) {
+  try {
+    return await apiCall({ action: 'getHistory', password });
+  } catch (e) {
+    if (e.message?.includes('Unknown action')) {
+      const data = await fetchAll(password);
+      return { ok: true, history: data.history };
+    }
+    throw e;
+  }
+}
+
 export async function addPub(password, user, pub) {
   return apiCall({ action: 'addPub', password, user, pub });
 }
