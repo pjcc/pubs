@@ -37,6 +37,7 @@ export default function App() {
     localStorage.getItem('brighton-pubs-view') || 'cards'
   );
   const [toast, setToast] = useState(null);
+  const [progress, setProgress] = useState(null);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [filters, setFilters] = useState({});
@@ -404,8 +405,9 @@ export default function App() {
             <BulkAddForm
               password={session.password}
               onAdd={handleAddPub}
-              onDone={() => loadData(true)}
+              onDone={() => { setProgress(null); loadData(true); }}
               onCancel={() => { setShowForm(false); setBulkMode(false); }}
+              onProgress={setProgress}
             />
           ) : (
             <PubForm
@@ -430,9 +432,10 @@ export default function App() {
             onUpdate={handleUpdateCategory}
             onDelete={handleDeleteCategory}
             onRefetchAll={async () => {
-              showToast('Refetching details for all pubs...');
+              setProgress({ label: 'Refetching pub details...', current: 0, total: 0 });
               try {
                 const result = await refetchAll(session.password, session.name);
+                setProgress(null);
                 if (result.ok) {
                   showToast(`Updated ${result.updated} pubs (${result.skipped} skipped, ${result.errors || 0} errors)`);
                   loadData(true);
@@ -440,6 +443,7 @@ export default function App() {
                   showToast(result.error || 'Refetch failed', 'error');
                 }
               } catch (e) {
+                setProgress(null);
                 showToast('Refetch failed: ' + e.message, 'error');
               }
             }}
@@ -458,6 +462,21 @@ export default function App() {
             <button className="btn btn-primary" onClick={handleDeletePub}>Delete</button>
           </div>
         </Modal>
+      )}
+
+      {progress && (
+        <div className="progress-bar-wrap">
+          <div className="progress-bar-label">
+            {progress.label}
+            {progress.total > 0 && ` ${progress.current}/${progress.total}`}
+          </div>
+          <div className="progress-bar-track">
+            <div
+              className={`progress-bar-fill ${progress.total === 0 ? 'indeterminate' : ''}`}
+              style={progress.total > 0 ? { width: `${(progress.current / progress.total) * 100}%` } : {}}
+            />
+          </div>
+        </div>
       )}
 
       {toast && <Toast message={toast.message} type={toast.type} />}

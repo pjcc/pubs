@@ -1335,6 +1335,47 @@ a:hover { text-decoration: underline; }
   padding: 5px 8px;
 }
 
+/* ---- Progress Bar ---- */
+.progress-bar-wrap {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  box-shadow: var(--shadow);
+  z-index: 200;
+  min-width: 240px;
+  max-width: 90vw;
+}
+.progress-bar-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.progress-bar-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent-teal);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.progress-bar-fill.indeterminate {
+  width: 40%;
+  animation: indeterminate 1.2s ease-in-out infinite;
+}
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .pub-grid { grid-template-columns: 1fr; }
