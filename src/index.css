@@ -675,7 +675,7 @@ a:hover { text-decoration: underline; }
 
 .extra-info-label {
   color: var(--text-muted);
-  min-width: 120px;
+  min-width: 150px;
   flex-shrink: 0;
 }
 
